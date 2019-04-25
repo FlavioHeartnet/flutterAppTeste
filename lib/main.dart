@@ -11,76 +11,137 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.deepOrange,
         ),
-        home: Home()
-        );
+        home: Home());
   }
 }
 
 class Home extends StatefulWidget {
   @override
-  _State createState() => _State();
+  _HomeState createState() => _HomeState();
 }
 
-class _State extends State<Home> {
-  int _people = 0;
-  String _info = "Pode entrar!!";
-  void _changePeople(int delta)
-  {
-    setState(() {
-      _people+=delta;
-      if(_people < 0){
-        _info="Não há pessoas!!";
-        _people = 0;
-      }else if(_people >=11)
-      {
-        _info="Esta Lotado";
-      }else{
-         _info="Pode entrar!!";
-      }
+class _HomeState extends State<Home> {
+  TextEditingController weightController = TextEditingController();
+  TextEditingController heightController = TextEditingController();
 
+  String infoText = "Informe seus dados!!";
+
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  void _resetField() {
+    
+    setState(() {
+      weightController.text = "";
+      heightController.text = "";
+      infoText = "Informe seus dados!!";
       
     });
-    
+  }
+
+  void _calcutate() {
+    setState(() {
+      double weight = double.parse(weightController.text);
+      double height = double.parse(heightController.text) / 100;
+      double imc = weight / (height * height);
+
+      if (imc < 18.6) {
+        infoText = "Abaixo do peso: (${imc.toStringAsPrecision(4)})";
+      } else if (imc >= 18.6 && imc < 24.9) {
+        infoText = "Peso Ideal: (${imc.toStringAsPrecision(4)})";
+      } else if (imc >= 24.9 && imc < 29.9) {
+        infoText = "Levemente acima do peso: (${imc.toStringAsPrecision(4)})";
+      } else if (imc >= 29.9 && imc < 34.9) {
+        infoText = "Obesidade grau I: (${imc.toStringAsPrecision(4)})";
+      } else if (imc >= 34.9 && imc < 39.9) {
+        infoText = "Obesidade grau II: (${imc.toStringAsPrecision(4)})";
+      } else if (imc >= 40) {
+        infoText = "Obesidade grau III: (${imc.toStringAsPrecision(4)})";
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-          children: <Widget>[
-            Container(color: Colors.deepOrange[200]),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  "Pessoas: $_people",
-                  style: TextStyle(color: Colors.white, fontSize: 25),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.all(10),
-                      child: FlatButton(
-                        child: Text("+1",
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 25)),
-                        onPressed: () {_changePeople(1);},
-                      ),
-                    ),
-                    FlatButton(
-                      child: Text("-1",
-                          style: TextStyle(color: Colors.white, fontSize: 25)),
-                      onPressed: () {_changePeople(-1);},
-                    ),
-                  ],
-                ),
-                Text(
-                  _info,
-                  style: TextStyle(color: Colors.white, fontSize: 25),
-                ),
-              ],
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Calculadora de IMC"),
+          centerTitle: true,
+          backgroundColor: Colors.green,
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                _resetField();
+              },
             )
           ],
-        );
+        ),
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(16, 0.0, 10, 0.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Icon(
+                    Icons.person_outline,
+                    size: 120,
+                    color: Colors.green,
+                  ),
+                  TextFormField(
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return "Informe seu peso!";
+                      }
+                    },
+                    controller: weightController,
+                    keyboardType: TextInputType.numberWithOptions(),
+                    decoration: InputDecoration(
+                        labelText: "Peso (kg)",
+                        labelStyle: TextStyle(color: Colors.green)),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.green, fontSize: 25),
+                  ),
+                  TextFormField(
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return "Informe sua altura!";
+                      }
+                    },
+                    controller: heightController,
+                    keyboardType: TextInputType.numberWithOptions(),
+                    decoration: InputDecoration(
+                        labelText: "Altura (cm)",
+                        labelStyle: TextStyle(color: Colors.green)),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.green, fontSize: 25),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 10, bottom: 20),
+                    child: Container(
+                      height: 50,
+                      child: RaisedButton(
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            _calcutate();
+                          }
+                        },
+                        child: Text(
+                          "Calcular",
+                          style: TextStyle(color: Colors.white, fontSize: 25),
+                        ),
+                        color: Colors.green,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    infoText,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.green, fontSize: 25),
+                  )
+                ],
+              ),
+            )));
   }
 }
